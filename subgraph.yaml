@@ -1,0 +1,29 @@
+specVersion: 0.0.1
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: Contract
+    network: rinkeby
+    source:
+      address: "0xbCC5Bf921adFF9371a782E0A14b69A4503CC66C2"
+      abi: Contract
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - AddBook
+        - OrderResult
+        - OwnershipTransferred
+      abis:
+        - name: Contract
+          file: ./abis/Contract.json
+      eventHandlers:
+        - event: AddBook(indexed bytes32,uint256)
+          handler: handleAddBook
+        - event: OrderResult(indexed bytes32,uint32,address)
+          handler: handleOrderResult
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+      file: ./src/mapping.ts
