@@ -42,7 +42,7 @@ export function handleAddBook(event: AddBook): void {
     //authorID = "Bauthor" + event.params.bookId.toHexString();
     authorID = "Bauthor";
     bookEntity.author = authorID;
-  } if (copiesNumber >= BigInt.fromI32(21) && copiesNumber <= BigInt.fromI32(30)) {
+  } else if (copiesNumber >= BigInt.fromI32(21) && copiesNumber <= BigInt.fromI32(30)) {
     //authorID = "Cauthor" + event.params.bookId.toHexString();                                                                                                                                                                  
     authorID = "Cauthor";
     bookEntity.author = authorID;
