@@ -1,6 +1,6 @@
 specVersion: 0.0.2
 schema:
-  file: ./schema.graphql
+  file: schema.graphql
 dataSources:
   - kind: ethereum/contract
     name: Contract
@@ -20,7 +20,7 @@ dataSources:
         - OwnershipTransferred
       abis:
         - name: Contract
-          file: ./abis/Contract.json
+          file: Contract/abis/Contract.json
       eventHandlers:
         - event: AddBook(indexed bytes32,uint256)
           handler: handleAddBook
@@ -30,4 +30,4 @@ dataSources:
           handler: handleReturnBook
         - event: OwnershipTransferred(indexed address,indexed address)
           handler: handleOwnershipTransferred
-      file: ./src/mapping.ts
+      file: Contract/Contract.wasm

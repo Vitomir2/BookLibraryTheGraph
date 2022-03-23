@@ -1,35 +1,67 @@
-import { BigInt } from "@graphprotocol/graph-ts"
+import { ContractEntity, AuthorEntity } from './../generated/schema';
+import { BigInt, log } from "@graphprotocol/graph-ts"
 import {
-  Contract,
   AddBook,
-  OrderResult,
+  BorrowBook,
+  ReturnBook,
   OwnershipTransferred
 } from "../generated/Contract/Contract"
-import { ExampleEntity } from "../generated/schema"
+import { BookEntity } from "../generated/schema"
 
 export function handleAddBook(event: AddBook): void {
   // Entities can be loaded from the store using a string ID; this ID
   // needs to be unique across all entities of the same type
-  let entity = ExampleEntity.load(event.transaction.from.toHex())
+  let bookEntity = BookEntity.load(event.params.bookId.toHexString());
 
-  // Entities only exist after they have been saved to the store;
-  // `null` checks allow to create entities on demand
-  if (!entity) {
-    entity = new ExampleEntity(event.transaction.from.toHex())
-
-    // Entity fields can be set using simple assignments
-    entity.count = BigInt.fromI32(0)
+  if (bookEntity == null) {
+    bookEntity = new BookEntity(event.params.bookId.toHexString());
   }
 
   // BigInt and BigDecimal math are supported
-  entity.count = entity.count + BigInt.fromI32(1)
+  bookEntity.count = bookEntity.count.plus(BigInt.fromI32(1));
 
   // Entity fields can be set based on event parameters
-  entity.bookId = event.params.bookId
-  entity.availableCopies = event.params.availableCopies
+  bookEntity.bookId = event.params.bookId;
+  bookEntity.availableCopies = event.params.availableCopies;// bookEntity.availableCopies.plus(event.params.availableCopies);
+  
+  const copiesNumber = bookEntity.availableCopies;
+  log.info("testing log " + copiesNumber.toString(), [ copiesNumber.toString() ]);
+  //let authorID = event.params.bookId.toHexString();
+  let authorID = "";
+  let test = copiesNumber >= BigInt.fromI32(1) && copiesNumber <= BigInt.fromI32(10);
+  log.info("if condition log range 1-10 " + test.toString(), [ test.toString() ]);
+  test = copiesNumber >= BigInt.fromI32(11) && copiesNumber <= BigInt.fromI32(20);
+  log.info("if condition log range 11-20 " + test.toString(), [ test.toString() ]);
+  test = copiesNumber >= BigInt.fromI32(21) && copiesNumber <= BigInt.fromI32(30);
+  log.info("if condition log 21-30 " + test.toString(), [ test.toString() ]);
+  if (copiesNumber >= BigInt.fromI32(1) && copiesNumber <= BigInt.fromI32(10)) {
+    //authorID = "Aauthor" + event.params.bookId.toHexString();
+    authorID = "Aauthor";
+    bookEntity.author = authorID;
+  } else if (copiesNumber >= BigInt.fromI32(11) && copiesNumber <= BigInt.fromI32(20)) {
+    //authorID = "Bauthor" + event.params.bookId.toHexString();
+    authorID = "Bauthor";
+    bookEntity.author = authorID;
+  } if (copiesNumber >= BigInt.fromI32(21) && copiesNumber <= BigInt.fromI32(30)) {
+    //authorID = "Cauthor" + event.params.bookId.toHexString();                                                                                                                                                                  
+    authorID = "Cauthor";
+    bookEntity.author = authorID;
+  } else {
+    //authorID = "Dauthor" + event.params.bookId.toHexString();
+    authorID = "Vauthor";
+    bookEntity.author = authorID;
+  }
 
   // Entities can be written to the store with `.save()`
-  entity.save()
+  bookEntity.save()
+
+  // save the author entity
+  let authorEntity = AuthorEntity.load(authorID);
+  if (!authorEntity) {
+    authorEntity = new AuthorEntity(authorID);
+  }
+
+  authorEntity.save();
 
   // Note: If a handler doesn't require existing field values, it is faster
   // _not_ to load the entity from the store. Instead, create it fresh with
@@ -55,6 +87,37 @@ export function handleAddBook(event: AddBook): void {
   // - contract.wrapperContract(...)
 }
 
-export function handleOrderResult(event: OrderResult): void {}
+export function handleBorrowBook(event: BorrowBook): void {
+  let entity = BookEntity.load(event.params.bookId.toHexString());
 
-export function handleOwnershipTransferred(event: OwnershipTransferred): void {}
+  if (!entity) return;
+
+  entity.availableCopies = entity.availableCopies.minus(BigInt.fromI32(1));
+  entity.save();
+}
+
+export function handleReturnBook(event: ReturnBook): void {
+  let entity = BookEntity.load(event.params.bookId.toHexString());
+
+  if (!entity) return;
+
+  entity.availableCopies = entity.availableCopies.plus(BigInt.fromI32(1));
+  entity.save();
+}
+
+export function handleOwnershipTransferred(event: OwnershipTransferred): void {
+  if (!event.params.newOwner)
+    return;
+
+  if (event.params.previousOwner == event.params.newOwner)
+    return;
+
+  let entity = ContractEntity.load(event.address.toHex());
+  
+  if (!entity) {
+    entity = new ContractEntity(event.address.toHex()); // initialize with the contract address
+  }
+
+  entity.owner = event.params.newOwner;
+  entity.save();
+}
